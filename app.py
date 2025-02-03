@@ -34,7 +34,7 @@ vector_store = QdrantVectorStore.from_existing_collection(
 )
 
 # Interface do ChatBot
-st.title('Chat LAMFO x Proteomica')
+st.title('Chat LAMFO x Proteômica')
 st.logo('./assets/logo-lamfo.png', size='large')
 input = st.chat_input("Digite sua pergunta")
 
