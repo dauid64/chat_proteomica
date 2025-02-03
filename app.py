@@ -9,28 +9,20 @@ import streamlit as st
 
 load_dotenv(dotenv_path=".env", override=True)
 
-base_prompt = PromptTemplate.from_template(
-    """
-    Responda a pergunta abaixo de acordo com base no contexto passado para você. O contexto será passado em formato JSON
-    onde teremos 3 referências para sua resposta, as chaves "source" indica o caminho do arquivo juntamente com
-    o nome do arquivo PDF, "page" que é a página localizada no arquivo PDF e "page_label" que é a página que está
-    sendo indicada no próprio texto, "page_content" é o conteúdo do arquivo, 
-    caso tenha alguma outra chave pode somente ignorar. Lembre-se de sempre que usar
-    uma referência do contexto que está utilizando e responder em formato markdown.
+base_prompt_content = open("./prompts/base.md").read()
 
-    Contexto: {context}
+base_prompt = PromptTemplate.from_template(base_prompt_content)
 
-    Pergunta: {question}
-    """
-)
-
-if "messages" not in st.session_state:
-    st.session_state.messages = [
+if "messages_for_ia" not in st.session_state:
+    st.session_state.messages_for_ia = [
         {
             "role": "system",
             "content": "Você é um assistente de pesquisa que ajuda a encontrar informações sobre proteomica"
         }
     ]
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 for message in st.session_state.messages:
     if message["role"] != "system":
@@ -52,7 +44,7 @@ input = st.chat_input("Digite sua pergunta:")
 
 if input:
     st.chat_message("user").markdown(input)
-
+    st.session_state.messages.append({"role": "assistant", "content": input})
     documentos = vector_store.similarity_search(input, k=3)
 
     documentos_json = []
@@ -67,7 +59,9 @@ if input:
 
     prompt = base_prompt.format(context=documentos_json, question=input)
     print(prompt)
-    resposta = model.invoke(st.session_state.messages)
-    st.session_state.messages.append({"role": "assistant", "content": resposta.content})
+    st.session_state.messages_for_ia.append({"role": "assistant", "content": prompt})
 
+    resposta = model.invoke(st.session_state.messages_for_ia)
+    st.session_state.messages.append({"role": "assistant", "content": resposta.content})
+    st.session_state.messages_for_ia.append({"role": "assistant", "content": resposta.content})
     st.chat_message("assistant").markdown(resposta.content)
