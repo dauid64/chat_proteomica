@@ -8,6 +8,11 @@ import streamlit as st
 
 load_dotenv(dotenv_path=".env", override=True)
 
+# Interface do ChatBot
+st.title('Chat LAMFO x Proteômica')
+st.logo('./assets/logo-lamfo.png', size='large')
+input = st.chat_input("Digite sua pergunta")
+
 # Configuração ChatBot
 base_prompt_content = open("./prompts/base.md").read()
 base_prompt = PromptTemplate.from_template(base_prompt_content)
@@ -15,7 +20,7 @@ if "messages_for_model" not in st.session_state:
     st.session_state.messages_for_model = [
         {
             "role": "system",
-            "content": "Você é um assistente de pesquisa que ajuda a encontrar informações sobre proteomica"
+            "content": "Você é um assistente de pesquisa que ajuda a encontrar informações sobre proteômica"
         }
     ]
 if "messages" not in st.session_state:
@@ -33,10 +38,14 @@ vector_store = QdrantVectorStore.from_existing_collection(
     collection_name='proteomica',
 )
 
-# Interface do ChatBot
-st.title('Chat LAMFO x Proteômica')
-st.logo('./assets/logo-lamfo.png', size='large')
-input = st.chat_input("Digite sua pergunta")
+def processa_mensagem():
+    resposta = ''
+    for chunk in model.stream(st.session_state.messages_for_model):
+        resposta += chunk.content
+        yield chunk
+    st.session_state.messages.append({"role": "assistant", "content": resposta})
+    st.session_state.messages_for_model.append({"role": "assistant", "content": resposta})
+    
 
 if input:
     st.chat_message("user").markdown(input)
@@ -54,10 +63,11 @@ if input:
         documentos_json.append(documento_json)
 
     prompt = base_prompt.format(context=documentos_json, question=input)
+    st.session_state.messages_for_model.append({"role": "user", "content": prompt})
+    
+    with st.chat_message("assistant"):
+        st.write_stream(processa_mensagem())
 
-    st.session_state.messages_for_model.append({"role": "assistant", "content": prompt})
-
-    resposta = model.invoke(st.session_state.messages_for_model)
-    st.session_state.messages.append({"role": "assistant", "content": resposta.content})
-    st.session_state.messages_for_model.append({"role": "assistant", "content": resposta.content})
-    st.chat_message("assistant").markdown(resposta.content)
+    # st.session_state.messages.append({"role": "assistant", "content": resposta})
+    # st.session_state.messages_for_model.append({"role": "assistant", "content": resposta})
+    # st.chat_message("assistant").markdown(resposta)
