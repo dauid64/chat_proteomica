@@ -44,7 +44,7 @@ input = st.chat_input("Digite sua pergunta:")
 
 if input:
     st.chat_message("user").markdown(input)
-    st.session_state.messages.append({"role": "assistant", "content": input})
+    st.session_state.messages.append({"role": "user", "content": input})
     documentos = vector_store.similarity_search(input, k=3)
 
     documentos_json = []
@@ -58,7 +58,7 @@ if input:
         documentos_json.append(documento_json)
 
     prompt = base_prompt.format(context=documentos_json, question=input)
-    print(prompt)
+
     st.session_state.messages_for_ia.append({"role": "assistant", "content": prompt})
 
     resposta = model.invoke(st.session_state.messages_for_ia)
