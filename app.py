@@ -66,7 +66,7 @@ if input:
         documentos_json.append(documento_json)
 
     prompt = base_prompt.format(context=documentos_json, question=input)
-
+    print(prompt)
     resposta = model.invoke(st.session_state.messages)
     st.session_state.messages.append({"role": "assistant", "content": resposta.content})
 
