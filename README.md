@@ -1,5 +1,5 @@
 ---
-title: Chat Proteomica
+title: Chat Proteômica
 emoji: 🤖
 colorFrom: gray
 colorTo: blue
@@ -25,3 +25,4 @@ A Colaboração entre os Laboratórios de Aprendizagem de Máquina em Finanças 
 ## RAG Avançado
 
 Utilizei a lógica de RAG Avançado para fazer a recuperação dos dados coletados, porém a lógica está separada em outro projeto chamado [doc_parse_chat_proteomica](https://github.com/dauid64/doc_parse_chat_proteomica)
+
